@@ -1,0 +1,27 @@
+{
+  "token": "TOKEN_DA",
+  "rules": {
+    "usd": [
+      {
+        "from": 0.1,
+        "to": 0.2,
+        "execute": "python3 scripts/3.py",
+        "enabled": false
+      }
+    ],
+    "rub": [
+      {
+        "from": 1000,
+        "to": 1000,
+        "execute": "python3 scripts/1.py",
+        "enabled": true
+      },
+      {
+        "from": 2000,
+        "to": 2500,
+        "execute": "python3 scripts/2.py",
+        "enabled": true
+      }
+    ]
+  }
+}

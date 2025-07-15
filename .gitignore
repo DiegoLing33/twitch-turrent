@@ -2,7 +2,7 @@
 /dist
 /node_modules
 /build
-/config
+/config/config.json
 
 # Logs
 logs
