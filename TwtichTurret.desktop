@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Name=Twitch Turret
+Comment=Запускает приложение Twitch Turret
+Exec=lxterminal --working-directory=$HOME/twitch-turret --command="npm run start; echo '--- Приложение остановлено ---'; read -p 'Нажмите Enter для выхода...'"
+Terminal=true
+Type=Application
+Categories=Utility;
+StartupNotify=false
+Icon=$HOME/twitch-turret/icon.png
