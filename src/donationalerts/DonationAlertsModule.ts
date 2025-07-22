@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common'
-import { DonationsModule } from 'src/donations'
 import { ResolverModule } from 'src/resolver/ResolverModule'
-import { DonationAlertsService } from './services'
+import { CentrifugeService, WidgetService } from './services'
 
 @Module({
-  imports: [DonationsModule, ResolverModule],
-  providers: [DonationAlertsService],
-  exports: [DonationAlertsService],
+  imports: [ResolverModule],
+  providers: [WidgetService, CentrifugeService],
+  exports: [],
 })
 export class DonationAlertsModule {}

@@ -1,16 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
+import { OnEvent } from '@nestjs/event-emitter'
 import * as child_process from 'child_process'
 import { DonationsService, DonationStatus } from 'src/donations'
-import { IConfig } from 'src/types'
+
+export const QUEUE_PING_EVENT = 'QUEUE_PING_EVENT'
 
 @Injectable()
 export class QueueService {
   private readonly logger = new Logger(QueueService.name)
-  public constructor(
-    private readonly donationsService: DonationsService,
-    private readonly config: ConfigService<IConfig>,
-  ) {}
+  public constructor(private readonly donationsService: DonationsService) {}
 
   public async next() {
     if (await this.donationsService.hasInProgressDonations()) {
@@ -22,7 +20,7 @@ export class QueueService {
     if (items.length === 0) return
 
     const working = items[0]
-    const rule = this.donationsService.findRuleForAmount(working.amount, working.currency)
+    const rule = await this.donationsService.findRuleForAmount(working.amount, working.currency)
 
     if (!rule) {
       this.logger.error(`No rule found for donation ${working.id} (${JSON.stringify(working)})`)
@@ -63,5 +61,11 @@ export class QueueService {
       this.logger.log(`Donation ${processing.id} processed`)
       this.next()
     })
+  }
+
+  @OnEvent(QUEUE_PING_EVENT)
+  public handlePingEvent() {
+    this.logger.log('Ping event received')
+    setTimeout(() => this.next(), 0)
   }
 }

@@ -10,7 +10,11 @@ export type IRules = Record<ICurrency, IRule[]>
 
 export interface IConfig {
   token: string
-  rules: IRules
+  centrifuge: {
+    enabled: boolean
+    endpoint: string
+    subscribeEndpoint: string
+  }
 }
 
 function validateRule(rule: IRule): boolean {
@@ -37,16 +41,6 @@ function validateRule(rule: IRule): boolean {
   return true
 }
 
-function validateRules(rules: IRules): boolean {
-  // если rules не key: value, то выкинуть ошибку
-  if (typeof rules !== 'object' || Array.isArray(rules)) {
-    throw new Error(
-      `Правила должны быть объектом с ключами-валютами и значениями-правилами, например, { "usd": [ ... ], "rub": [ ... ]} (${JSON.stringify(rules)})`,
-    )
-  }
-  return true
-}
-
 function validateToken(token: string): boolean {
   if (!token) {
     throw new Error('Токен не может быть пустым')
@@ -61,19 +55,6 @@ export function validateConfig(config: IConfig): IConfig {
 
   if (!validateToken(config.token)) {
     throw new Error('Токен не может быть пустым')
-  }
-
-  if (!validateRules(config.rules)) {
-    throw new Error('Правила должны быть объектом с ключами-валютами и значениями-правилами')
-  }
-
-  for (const [currency, rules] of Object.entries(config.rules)) {
-    if (!Array.isArray(rules)) {
-      throw new Error(`Правила для валюты ${currency} должны быть массивом`)
-    }
-    for (const rule of rules) {
-      validateRule(rule)
-    }
   }
 
   return config

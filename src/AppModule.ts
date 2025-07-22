@@ -1,9 +1,12 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
+import { EventEmitterModule } from '@nestjs/event-emitter'
 import { ServeStaticModule } from '@nestjs/serve-static'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { join } from 'path'
 import { DonationAlertsModule } from './donationalerts'
+import { DonationsModule } from './donations'
+import { DynamicDataModule } from './dynamic-data'
 import { convigJsonLoader } from './loaders'
 
 @Module({
@@ -12,6 +15,7 @@ import { convigJsonLoader } from './loaders'
       load: [convigJsonLoader()],
       isGlobal: true,
     }),
+    EventEmitterModule.forRoot(),
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'client'),
     }),
@@ -21,6 +25,8 @@ import { convigJsonLoader } from './loaders'
       entities: [__dirname + '/**/*Entity{.ts,.js}'],
       synchronize: true,
     }),
+    DonationsModule,
+    DynamicDataModule,
     DonationAlertsModule,
   ],
   controllers: [],

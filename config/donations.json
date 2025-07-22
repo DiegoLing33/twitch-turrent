@@ -1,0 +1,23 @@
+[
+  {
+    "currency": "rub",
+    "from": 1000,
+    "to": 1000,
+    "execute": "python3 scripts/1.py",
+    "enabled": true
+  },
+  {
+    "from": 3500,
+    "to": 4000,
+    "currency": "rub",
+    "execute": "python3 scripts/2.py",
+    "enabled": true
+  },
+  {
+    "from": 100,
+    "to": 100,
+    "currency": "rub",
+    "execute": "python3 scripts/1.py",
+    "enabled": true
+  }
+]

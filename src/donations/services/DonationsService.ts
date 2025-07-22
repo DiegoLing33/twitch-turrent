@@ -1,7 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
+import { EventEmitter2 } from '@nestjs/event-emitter'
 import { InjectRepository } from '@nestjs/typeorm'
-import { IConfig } from 'src/types'
+import { DynamicDataService } from 'src/dynamic-data'
+import { QUEUE_PING_EVENT } from 'src/resolver/services'
 import { Repository } from 'typeorm'
 import { DonationDto } from '../dtos'
 import { DonationEntity, DonationStatus } from '../entities'
@@ -12,14 +13,19 @@ export class DonationsService {
   public constructor(
     @InjectRepository(DonationEntity)
     private readonly donationsRepository: Repository<DonationEntity>,
-    private readonly config: ConfigService<IConfig>,
+    private readonly dynamicDataService: DynamicDataService,
+    private readonly events: EventEmitter2,
   ) {}
+
+  async getDonationsConfig() {
+    return await this.dynamicDataService.readDonationsConfig()
+  }
 
   public async getLastItems(status: DonationStatus) {
     return await this.donationsRepository.find({
       where: { status },
       order: {
-        createdAt: 'ASC',
+        createdAt: status === DonationStatus.COMPLETED ? 'DESC' : 'ASC',
       },
       take: 10,
     })
@@ -54,11 +60,11 @@ export class DonationsService {
     return result
   }
 
-  public findRuleForAmount(a: number | string, c: string) {
+  public async findRuleForAmount(a: number | string, c: string) {
     const amount = formatAmount(String(a))
-    const rules = this.config.getOrThrow('rules', { infer: true })
+    const rules = await this.getDonationsConfig()
     const currency = c.toLowerCase()
-    const currencyRules = rules[currency]
+    const currencyRules = rules.filter(it => it.currency.toLowerCase() === currency)
 
     return currencyRules
       .filter(it => it.enabled)
@@ -74,7 +80,7 @@ export class DonationsService {
    * @param event The donation event
    */
   public async createDonation(donationId: string, event: DonationDto) {
-    const rule = this.findRuleForAmount(event.amount, event.currency)
+    const rule = await this.findRuleForAmount(event.amount, event.currency)
 
     if (!rule) {
       this.logger.log(`Donation amount not in rules list, ignoring: ${event.amount}`)
@@ -94,6 +100,7 @@ export class DonationsService {
     const result = await this.donationsRepository.save(entity)
     this.logger.log(`Saved donation to database ${JSON.stringify(result)}`)
 
+    if (result) this.events.emit(QUEUE_PING_EVENT)
     return result
   }
 }
