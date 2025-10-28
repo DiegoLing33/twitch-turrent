@@ -1,3 +1,8 @@
 {
-  "token": "TOKEN_DA"
+  "token": "TOKEN_DA",
+  "centrifuge": {
+    "enabled": true,
+    "endpoint": "wss://centrifugo.donationalerts.com/connection/websocket",
+    "subscribeEndpoint": "https://www.donationalerts.com/api/v1/centrifuge/subscribe"
+  }
 }
