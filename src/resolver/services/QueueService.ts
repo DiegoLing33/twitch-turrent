@@ -57,22 +57,15 @@ export class QueueService {
     const updatedTask = await this.goalsTasksService.updateTask(working)
     this.logger.log(`Processing goal task ${updatedTask.title}`)
 
-    const updateFail = async () => {
-      updatedTask.status = GoalTaskStatus.PENDING
-      await this.goalsTasksService.updateTask(updatedTask)
-    }
-
     // Run working.execute, and when shell script is finished, set goal to completed status
     const command = rule.execute
     this.logger.log(`Running command: ${command}`)
     const child = child_process.exec(command, (error, stdout, stderr) => {
       if (error) {
-        updateFail()
         this.logger.error(`Error executing command: ${error.message}`)
         return
       }
       if (stderr) {
-        updateFail()
         this.logger.error(`Error executing command: ${stderr}`)
         return
       }
@@ -83,7 +76,6 @@ export class QueueService {
       this.logger.log(`Command exited with code ${code}`)
 
       if (code !== 0) {
-        updateFail()
         this.logger.error(`Error while processing goal task ${updatedTask.title} (${JSON.stringify(updatedTask)})`)
         this.logger.error(`Command failed with code ${code}`)
         return
@@ -119,21 +111,15 @@ export class QueueService {
     this.logger.log(`Processing donation ${working.id}`)
     const processing = { ...working, status: DonationStatus.IN_PROGRESS }
 
-    const updateFail = async () => {
-      await this.donationsService.resetAllToPendingStatus()
-    }
-
     // Run working.execute, and when shell script is finished, set donation to completed status
     const command = rule.execute
     this.logger.log(`Running command: ${command}`)
     const child = child_process.exec(command, (error, stdout, stderr) => {
       if (error) {
-        updateFail()
         this.logger.error(`Error executing command: ${error.message}`)
         return
       }
       if (stderr) {
-        updateFail()
         this.logger.error(`Error executing command: ${stderr}`)
         return
       }
@@ -144,7 +130,6 @@ export class QueueService {
       this.logger.log(`Command exited with code ${code}`)
 
       if (code !== 0) {
-        updateFail()
         this.logger.error(`Error while processing donation ${processing.id} (${JSON.stringify(processing)})`)
         this.logger.error(`Command failed with code ${code}`)
         return
