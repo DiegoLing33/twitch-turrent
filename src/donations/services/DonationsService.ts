@@ -89,7 +89,7 @@ export class DonationsService {
 
     const entity = this.donationsRepository.create({
       eventId: donationId,
-      username: event.username,
+      username: event.username ?? 'Anonymous',
       amount: event.amount,
       currency: event.currency.toLowerCase(),
       type: event.currency,
