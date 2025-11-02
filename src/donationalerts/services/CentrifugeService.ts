@@ -14,6 +14,7 @@ global.XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest
 export class CentrifugeService implements OnModuleInit, OnModuleDestroy {
   private centrifuge!: Centrifuge
   private clientId!: string
+  private donationsSkipIds = new Set<string>()
 
   private readonly logger = new Logger(CentrifugeService.name)
   public constructor(
@@ -62,8 +63,17 @@ export class CentrifugeService implements OnModuleInit, OnModuleDestroy {
       })
 
       this.centrifuge.subscribe(`$goals:goal_${widget.id}`, async message => {
+        if (this.donationsSkipIds.has(message.id)) {
+          this.donationsSkipIds.delete(message.id)
+          return
+        }
+
         const event = message as ICentrifugeMessage<IGoalMessage>
-        this.logger.log(JSON.stringify(message))
+        this.donationsSkipIds.add(message.id)
+
+        this.logger.log(
+          `Received goal event: title = ${event.data.title}, raised_amount = ${event.data.raised_amount}, goal_amount = ${event.data.goal_amount}`,
+        )
         try {
           await this.goalsService.createGoal(event.data)
         } catch (error) {
