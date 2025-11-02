@@ -94,7 +94,7 @@ export class DonationsService {
       currency: event.currency.toLowerCase(),
       type: event.currency,
       status: DonationStatus.PENDING,
-      message: event.message,
+      message: event.message ?? '',
     })
 
     const result = await this.donationsRepository.save(entity)
