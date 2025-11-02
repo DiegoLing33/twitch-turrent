@@ -367,6 +367,11 @@
         }
       }
 
+      function removeConfigRow(index) {
+        configGoalsData.splice(index, 1)
+        renderGoalsConfigTable()
+      }
+
       function addConfigGoalsRow() {
         configGoalsData.push({
           name: '',
