@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import * as fs from 'fs/promises'
 import * as path from 'path'
 import { cwd } from 'process'
-import { IDonationsDynamicConfigItem } from '../types'
+import { IDonationsDynamicConfigItem, IGoalsDynamicConfigItem } from '../types'
 
 @Injectable()
 export class DynamicDataService {
@@ -28,6 +28,10 @@ export class DynamicDataService {
     return this.readJSONData<IDonationsDynamicConfigItem[]>('donations.json')
   }
 
+  async readGoalsConfig() {
+    return this.readJSONData<IGoalsDynamicConfigItem[]>('goals.json')
+  }
+
   async saveJSONData(filename: string, data: any) {
     const filePath = path.join(this.getWorkingPath(), filename)
     try {
@@ -42,5 +46,9 @@ export class DynamicDataService {
 
   async saveDonationsConfig(data: IDonationsDynamicConfigItem[]) {
     return await this.saveJSONData('donations.json', data)
+  }
+
+  async saveGoalsConfig(data: IGoalsDynamicConfigItem[]) {
+    return await this.saveJSONData('goals.json', data)
   }
 }

@@ -1,0 +1,1 @@
+export { GoalsControllers } from './GoalsControllers'

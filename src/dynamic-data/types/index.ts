@@ -1,1 +1,2 @@
-export * from './IDonationsDynamicConfig';
+export * from './IDonationsDynamicConfig'
+export * from './IGoalsDynamicConfigItem'

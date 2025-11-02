@@ -3,6 +3,7 @@ import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/commo
 import { ConfigService } from '@nestjs/config'
 import * as Centrifuge from 'centrifuge'
 import { DonationsService } from 'src/donations'
+import { GoalsService } from 'src/goals/services'
 import { IConfig } from 'src/types'
 import * as Websocket from 'ws'
 import { ICentrifugeMessage, IDonationMessage, IGoalMessage } from '../types'
@@ -19,6 +20,7 @@ export class CentrifugeService implements OnModuleInit, OnModuleDestroy {
     private readonly widgetService: WidgetService,
     private readonly donations: DonationsService,
     private readonly config: ConfigService<IConfig>,
+    private readonly goalsService: GoalsService,
   ) {}
 
   async onModuleInit() {
@@ -59,9 +61,14 @@ export class CentrifugeService implements OnModuleInit, OnModuleDestroy {
         }
       })
 
-      this.centrifuge.subscribe(`$goals:goal_${widget.id}`, message => {
+      this.centrifuge.subscribe(`$goals:goal_${widget.id}`, async message => {
         const event = message as ICentrifugeMessage<IGoalMessage>
-        this.logger.log(JSON.stringify(message, null, 2))
+        this.logger.log(JSON.stringify(message))
+        try {
+          await this.goalsService.createGoal(event.data)
+        } catch (error) {
+          this.logger.warn('Error saving goal to database:', error.message)
+        }
       })
     })
 

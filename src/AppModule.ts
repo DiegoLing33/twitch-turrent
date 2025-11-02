@@ -7,6 +7,7 @@ import { join } from 'path'
 import { DonationAlertsModule } from './donationalerts'
 import { DonationsModule } from './donations'
 import { DynamicDataModule } from './dynamic-data'
+import { GoalsModule } from './goals'
 import { convigJsonLoader } from './loaders'
 
 @Module({
@@ -28,6 +29,7 @@ import { convigJsonLoader } from './loaders'
     DonationsModule,
     DynamicDataModule,
     DonationAlertsModule,
+    GoalsModule,
   ],
   controllers: [],
   providers: [],

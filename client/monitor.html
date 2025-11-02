@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Twitch Turret - Мониторинг</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Мониторинг</h1>
+
+      <!-- Управление очередью -->
+      <div class="section">
+        <h2>Управление очередью</h2>
+        <div class="queue-controls">
+          <div class="queue-controls-group">
+            <button class="btn btn-start" onclick="startQueue()">Запустить очередь</button>
+            <button class="btn btn-stop" onclick="stopQueue()">Остановить очередь</button>
+          </div>
+          <div class="queue-controls-group">
+            <a href="monitor.html">
+              <button class="btn">Мониторинг</button>
+            </a>
+            <a href="admin.html">
+              <button class="btn">Пожертвования</button>
+            </a>
+            <a href="goals.html">
+              <button class="btn">Сборы средств</button>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Очередь пожертвований -->
+      <div class="section">
+        <h2>Очередь обработки пожертвований</h2>
+        <div class="button-group" style="margin-bottom: 20px">
+          <button class="btn btn-secondary" onclick="loadQueueData()">Обновить данные</button>
+        </div>
+        <div class="queue-grid">
+          <div class="queue-table status-pending">
+            <h3>Ожидают (PENDING)</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Пользователь</th>
+                  <th>Сумма</th>
+                </tr>
+              </thead>
+              <tbody id="pending-queue">
+                <tr><td colspan="3" class="loading">Загрузка...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="queue-table status-progress">
+            <h3>В обработке (IN_PROGRESS)</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Пользователь</th>
+                  <th>Сумма</th>
+                </tr>
+              </thead>
+              <tbody id="progress-queue">
+                <tr><td colspan="3" class="loading">Загрузка...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="queue-table status-completed">
+            <h3>Завершены (COMPLETED)</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Пользователь</th>
+                  <th>Сумма</th>
+                </tr>
+              </thead>
+              <tbody id="completed-queue">
+                <tr><td colspan="3" class="loading">Загрузка...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Очередь задач сборов средств -->
+      <div class="section">
+        <h2>Очередь обработки сборов средств</h2>
+        <div class="button-group" style="margin-bottom: 20px">
+          <button class="btn btn-secondary" onclick="loadQueueData()">Обновить данные</button>
+        </div>
+        <div class="queue-grid">
+          <div class="queue-table status-pending">
+            <h3>Ожидают (PENDING)</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Название</th>
+                  <th>Сумма</th>
+                </tr>
+              </thead>
+              <tbody id="goals-pending-queue">
+                <tr><td colspan="3" class="loading">Загрузка...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="queue-table status-progress">
+            <h3>В обработке (IN_PROGRESS)</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Название</th>
+                  <th>Сумма</th>
+                </tr>
+              </thead>
+              <tbody id="goals-progress-queue">
+                <tr><td colspan="3" class="loading">Загрузка...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="queue-table status-completed">
+            <h3>Завершены (COMPLETED)</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Название</th>
+                  <th>Сумма</th>
+                </tr>
+              </thead>
+              <tbody id="goals-completed-queue">
+                <tr><td colspan="3" class="loading">Загрузка...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Функции управления очередью
+      async function startQueue() {
+        try {
+          const response = await fetch('/queue/next', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+          })
+
+          if (response.ok) {
+            showMessage('Очередь запущена!', 'success')
+            loadQueueData()
+          } else {
+            showMessage('Ошибка при запуске очереди', 'error')
+          }
+        } catch (error) {
+          showMessage('Ошибка сети: ' + error.message, 'error')
+        }
+      }
+
+      async function stopQueue() {
+        try {
+          const response = await fetch('/donations/cancel-processing', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+          })
+
+          if (response.ok) {
+            showMessage('Очередь остановлена!', 'success')
+            loadQueueData()
+          } else {
+            showMessage('Ошибка при остановке очереди', 'error')
+          }
+        } catch (error) {
+          showMessage('Ошибка сети: ' + error.message, 'error')
+        }
+      }
+
+      async function loadQueueData() {
+        await loadDonationsQueueData()
+        await loadGoalsQueueData()
+      }
+
+      // Загрузка данных очереди
+      async function loadDonationsQueueData() {
+        const statuses = ['PENDING', 'IN_PROGRESS', 'COMPLETED']
+        const containers = ['pending-queue', 'progress-queue', 'completed-queue']
+
+        for (let i = 0; i < statuses.length; i++) {
+          const status = statuses[i]
+          const container = document.getElementById(containers[i])
+
+          try {
+            const response = await fetch(`/donations/last10?status=${status}`)
+
+            if (response.ok) {
+              const data = await response.json()
+              renderQueueTable(container, data)
+            } else {
+              container.innerHTML = '<tr><td colspan="3" class="error">Ошибка загрузки</td></tr>'
+            }
+          } catch (error) {
+            container.innerHTML = '<tr><td colspan="3" class="error">Ошибка сети</td></tr>'
+          }
+        }
+      }
+
+      // Загрузка данных очереди
+      async function loadGoalsQueueData() {
+        const statuses = ['PENDING', 'IN_PROGRESS', 'COMPLETED']
+        const containers = ['goals-pending-queue', 'goals-progress-queue', 'goals-completed-queue']
+
+        for (let i = 0; i < statuses.length; i++) {
+          const status = statuses[i]
+          const container = document.getElementById(containers[i])
+
+          try {
+            const response = await fetch(`/goals/tasks/last?status=${status}`)
+
+            if (response.ok) {
+              const data = await response.json()
+              renderGoalsQueueTable(container, data)
+            } else {
+              container.innerHTML = '<tr><td colspan="3" class="error">Ошибка загрузки</td></tr>'
+            }
+          } catch (error) {
+            container.innerHTML = '<tr><td colspan="3" class="error">Ошибка сети</td></tr>'
+          }
+        }
+      }
+
+      function renderQueueTable(container, data) {
+        if (data.length === 0) {
+          container.innerHTML = '<tr><td colspan="3">Нет данных</td></tr>'
+          return
+        }
+
+        const rows = data
+          .map(
+            item => `
+                <tr>
+                    <td>${item.id.substring(0, 8)}</td>
+                    <td>${item.username}</td>
+                    <td>${item.amount} ${item.currency.toUpperCase()}</td>
+                </tr>
+            `,
+          )
+          .join('')
+
+        container.innerHTML = rows
+      }
+
+      function renderGoalsQueueTable(container, data) {
+        if (data.length === 0) {
+          container.innerHTML = '<tr><td colspan="3">Нет данных</td></tr>'
+          return
+        }
+
+        const rows = data
+          .map(
+            item => `
+                <tr>
+                    <td>${item.id.substring(0, 8)}</td>
+                    <td>${item.title}</td>
+                    <td>${item.raisedAmount} ${item.currency.toUpperCase()}</td>
+                </tr>
+            `,
+          )
+          .join('')
+
+        container.innerHTML = rows
+      }
+
+      // Вспомогательные функции
+      function showMessage(text, type) {
+        // Удаляем предыдущие сообщения
+        const existingMessages = document.querySelectorAll('.error, .success')
+        existingMessages.forEach(msg => msg.remove())
+
+        const messageDiv = document.createElement('div')
+        messageDiv.className = type
+        messageDiv.textContent = text
+
+        document.querySelector('.container').insertBefore(messageDiv, document.querySelector('.section'))
+
+        // Автоматически убираем сообщение через 5 секунд
+        setTimeout(() => {
+          messageDiv.remove()
+        }, 5000)
+      }
+
+      // Загрузка данных при загрузке страницы
+      document.addEventListener('DOMContentLoaded', function () {
+        loadQueueData()
+      })
+
+      // Автообновление данных очереди каждые 30 секунд
+      setInterval(loadQueueData, 30000)
+    </script>
+  </body>
+</html>

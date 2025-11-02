@@ -1,0 +1,285 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 50%, #16213e 100%);
+  color: #e0e6ed;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+h1 {
+  text-align: center;
+  color: #9d4edd;
+  margin-bottom: 30px;
+  font-size: 2.5em;
+  text-shadow: 0 0 20px rgba(157, 78, 221, 0.3);
+}
+
+.section {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  padding: 25px;
+  margin-bottom: 30px;
+  border: 1px solid rgba(157, 78, 221, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.section h2 {
+  color: #c77dff;
+  margin-bottom: 20px;
+  font-size: 1.5em;
+}
+
+.queue-controls {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  justify-content: space-between;
+}
+
+.queue-controls-group {
+  display: flex;
+  gap: 15px;
+}
+
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+  min-width: 160px;
+}
+
+.btn:disabled {
+  cursor: not-allowed !important;
+  opacity: 0.7 !important;
+}
+
+.btn-start {
+  background: linear-gradient(45deg, #10b981, #059669);
+  color: white;
+}
+
+.btn-start:hover {
+  background: linear-gradient(45deg, #059669, #047857);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+}
+
+.btn-stop {
+  background: linear-gradient(45deg, #ef4444, #dc2626);
+  color: white;
+}
+
+.btn-stop:hover {
+  background: linear-gradient(45deg, #dc2626, #b91c1c);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+}
+
+.btn-primary {
+  background: linear-gradient(45deg, #9d4edd, #7b2cbf);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(45deg, #7b2cbf, #6a1b9a);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(157, 78, 221, 0.4);
+}
+
+.btn-secondary {
+  background: linear-gradient(45deg, #64748b, #475569);
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: linear-gradient(45deg, #475569, #334155);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(100, 116, 139, 0.4);
+}
+
+.queue-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 20px;
+}
+
+.queue-table {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  padding: 15px;
+  border: 1px solid rgba(157, 78, 221, 0.1);
+}
+
+.queue-table h3 {
+  color: #e0aaff;
+  margin-bottom: 15px;
+  text-align: center;
+  font-size: 1.2em;
+}
+
+.status-pending h3 {
+  color: #fbbf24;
+}
+.status-progress h3 {
+  color: #3b82f6;
+}
+.status-completed h3 {
+  color: #10b981;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+th,
+td {
+  padding: 12px 8px;
+  text-align: left;
+  border-bottom: 1px solid rgba(157, 78, 221, 0.1);
+}
+
+th {
+  background: rgba(157, 78, 221, 0.2);
+  color: #c77dff;
+  font-weight: 600;
+}
+
+tr:hover {
+  background: rgba(157, 78, 221, 0.1);
+}
+
+.config-table {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.config-table input,
+.config-table select {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(157, 78, 221, 0.3);
+  border-radius: 6px;
+  color: #e0e6ed;
+  padding: 8px;
+  width: 100%;
+}
+
+.config-table input:focus,
+.config-table select:focus {
+  outline: none;
+  border-color: #9d4edd;
+  box-shadow: 0 0 10px rgba(157, 78, 221, 0.3);
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  color: #c77dff;
+  font-weight: 600;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(157, 78, 221, 0.3);
+  border-radius: 6px;
+  color: #e0e6ed;
+  padding: 12px;
+  width: 100%;
+  font-size: 16px;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #9d4edd;
+  box-shadow: 0 0 10px rgba(157, 78, 221, 0.3);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.checkbox-wrapper input[type='checkbox'] {
+  width: auto;
+  margin: 0;
+}
+
+.loading {
+  text-align: center;
+  color: #9d4edd;
+  font-style: italic;
+}
+
+.error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  padding: 15px;
+  color: #fca5a5;
+  margin-bottom: 20px;
+}
+
+.success {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 8px;
+  padding: 15px;
+  color: #6ee7b7;
+  margin-bottom: 20px;
+}
+
+.button-group {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .queue-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+}

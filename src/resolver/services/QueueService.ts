@@ -2,15 +2,102 @@ import { Injectable, Logger } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import * as child_process from 'child_process'
 import { DonationsService, DonationStatus } from 'src/donations'
+import { GoalTaskStatus } from 'src/goals'
+import { GoalsService, GoalsTasksService } from 'src/goals/services'
 
 export const QUEUE_PING_EVENT = 'QUEUE_PING_EVENT'
 
 @Injectable()
 export class QueueService {
   private readonly logger = new Logger(QueueService.name)
-  public constructor(private readonly donationsService: DonationsService) {}
+  public constructor(
+    private readonly donationsService: DonationsService,
+
+    private readonly goalsService: GoalsService,
+    private readonly goalsTasksService: GoalsTasksService,
+  ) {}
 
   public async next() {
+    const hasDonations = await this.donationsService.hasInProgressDonations()
+    const hasGoalsTasks = await this.goalsTasksService.hasInProgressTasks()
+
+    if (hasDonations || hasGoalsTasks) {
+      this.logger.log('There are some items in progress, skipping next() call')
+      return
+    }
+
+    const hasGoalPending = await this.goalsTasksService.hasPendingTasks()
+    if (hasGoalPending) {
+      await this.nextGoal()
+      return
+    }
+
+    await this.nextDonation()
+  }
+
+  public async nextGoal() {
+    if (await this.goalsTasksService.hasInProgressTasks()) {
+      this.logger.log('There are goals tasks in progress')
+      return
+    }
+
+    const items = await this.goalsTasksService.getLastTasks(GoalTaskStatus.PENDING)
+    if (items.length === 0) return
+
+    const working = items[0]
+    const rule = await this.goalsService.getRuleForGoal(working.goalTitle)
+
+    if (!rule) {
+      this.logger.error(`No rule found for goal ${working.id} (${JSON.stringify(working)})`)
+      this.next()
+      return
+    }
+
+    working.status = GoalTaskStatus.IN_PROGRESS
+    const updatedTask = await this.goalsTasksService.updateTask(working)
+    this.logger.log(`Processing goal task ${updatedTask.title}`)
+
+    const updateFail = async () => {
+      updatedTask.status = GoalTaskStatus.PENDING
+      await this.goalsTasksService.updateTask(updatedTask)
+    }
+
+    // Run working.execute, and when shell script is finished, set goal to completed status
+    const command = rule.execute
+    this.logger.log(`Running command: ${command}`)
+    const child = child_process.exec(command, (error, stdout, stderr) => {
+      if (error) {
+        updateFail()
+        this.logger.error(`Error executing command: ${error.message}`)
+        return
+      }
+      if (stderr) {
+        updateFail()
+        this.logger.error(`Error executing command: ${stderr}`)
+        return
+      }
+      this.logger.log(`Command output: ${stdout}`)
+    })
+
+    child.on('exit', async code => {
+      this.logger.log(`Command exited with code ${code}`)
+
+      if (code !== 0) {
+        updateFail()
+        this.logger.error(`Error while processing goal task ${updatedTask.title} (${JSON.stringify(updatedTask)})`)
+        this.logger.error(`Command failed with code ${code}`)
+        return
+      }
+
+      this.logger.log(`Command succeeded`)
+      updatedTask.status = GoalTaskStatus.COMPLETED
+      await this.goalsTasksService.updateTask(updatedTask)
+      this.logger.log(`Goal task ${updatedTask.title} processed`)
+      this.next()
+    })
+  }
+
+  public async nextDonation() {
     if (await this.donationsService.hasInProgressDonations()) {
       this.logger.log('There are donations in progress')
       return
@@ -32,15 +119,21 @@ export class QueueService {
     this.logger.log(`Processing donation ${working.id}`)
     const processing = { ...working, status: DonationStatus.IN_PROGRESS }
 
+    const updateFail = async () => {
+      await this.donationsService.resetAllToPendingStatus()
+    }
+
     // Run working.execute, and when shell script is finished, set donation to completed status
     const command = rule.execute
     this.logger.log(`Running command: ${command}`)
     const child = child_process.exec(command, (error, stdout, stderr) => {
       if (error) {
+        updateFail()
         this.logger.error(`Error executing command: ${error.message}`)
         return
       }
       if (stderr) {
+        updateFail()
         this.logger.error(`Error executing command: ${stderr}`)
         return
       }
@@ -51,6 +144,7 @@ export class QueueService {
       this.logger.log(`Command exited with code ${code}`)
 
       if (code !== 0) {
+        updateFail()
         this.logger.error(`Error while processing donation ${processing.id} (${JSON.stringify(processing)})`)
         this.logger.error(`Command failed with code ${code}`)
         return
